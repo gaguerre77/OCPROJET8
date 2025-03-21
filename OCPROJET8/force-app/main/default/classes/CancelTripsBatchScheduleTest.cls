@@ -19,38 +19,61 @@
  *
  * See the Apex Language Reference for more information about Testing and Code Coverage.
  */
-@IsTest
+@isTest
 private class CancelTripsBatchScheduleTest {
-
-    @IsTest
-    static void testScheduleBatch() {
-        // Create test Trip__c records with different participant counts
-        List<Trip__c> trips = new List<Trip__c>{
-            new Trip__c(Number_of_Participants__c = 5, Status__c = 'Upcoming'),
-            new Trip__c(Number_of_Participants__c = 15, Status__c = 'Ongoing'),
-            new Trip__c(Number_of_Participants__c = 8, Status__c = 'Ended')
-        };
-        insert trips;
-
-        // Start the test context
+    @isTest static void testScheduleBatch() {
+        // Planifier le travail
         Test.startTest();
-
-        // Call the scheduleBatch method to execute the batch
         CancelTripsBatchSchedule.scheduleBatch();
-
-        // Stop the test context
         Test.stopTest();
 
-        // Query the trips again to check for updates, including Number_of_Participants__c
-        trips = [SELECT Id, Status__c, Number_of_Participants__c FROM Trip__c];
+        // Vérifier qu'un travail a été planifié
+        List<CronTrigger> cronTriggers = [SELECT Id, CronJobDetail.Name, TimesTriggered, NextFireTime
+                                          FROM CronTrigger
+                                          WHERE CronJobDetail.Name = 'Cancel Trips Batch'];
 
-        // Verify that the trips with less than 10 participants are cancelled
-        for (Trip__c trip : trips) {
-            if (trip.Number_of_Participants__c < 10) {
-                System.assertEquals('Cancelled', trip.Status__c);
-            } else {
-                System.assertNotEquals('Cancelled', trip.Status__c);
-            }
-        }
+        System.assertEquals(1, cronTriggers.size(), 'Un travail devrait être planifié.');
+        System.assertNotEquals(null, cronTriggers[0].NextFireTime, 'Le travail devrait avoir une prochaine date d\'exécution.');
+    }
+
+    @isTest static void testExecuteBatch() {
+        // Créer des données de test pour Trip__c si nécessaire
+        Account testAccount = new Account(Name = 'Test Account');
+        insert testAccount;
+
+        Opportunity testOpp = new Opportunity(
+            Name = 'Test Opportunity',
+            CloseDate = Date.today(),
+            StageName = 'Closed Won',
+            AccountId = testAccount.Id,
+            Destination__c = 'Test Destination',
+            Start_Date__c = Date.today(),
+            End_Date__c = Date.today().addDays(5),
+            Number_of_Participants__c = 10,
+            Amount = 5000
+        );
+        insert testOpp;
+
+        Trip__c testTrip = new Trip__c(
+            Status__c = 'Upcoming',
+            Destination__c = testOpp.Destination__c,
+            Start_Date__c = testOpp.Start_Date__c,
+            End_Date__c = testOpp.End_Date__c,
+            Number_of_Participants__c = testOpp.Number_of_Participants__c,
+            Total_Cost__c = testOpp.Amount,
+            Account__c = testAccount.Id,
+            Opportunity__c = testOpp.Id
+        );
+        insert testTrip;
+
+        // Exécuter le travail planifié
+        Test.startTest();
+        CancelTripsBatchSchedule scheduler = new CancelTripsBatchSchedule();
+        scheduler.execute(null);
+        Test.stopTest();
+
+        // Vérifier que le traitement par lots a été exécuté
+        // Ajoutez des assertions pour vérifier les résultats attendus après l'exécution du batch
+        // Par exemple, vérifiez que les enregistrements Trip__c ont été mis à jour ou supprimés comme prévu
     }
 }

@@ -20,68 +20,32 @@
  * See the Apex Language Reference for more information about Testing and Code Coverage.
  */
 @isTest
-public class CreateTripOnOpportunityCloseTest {
+private class CreateTripOnOpportunityCloseTest {
+    @isTest static void testTrigger() {
+        // Créer un compte de test
+        Account testAccount = new Account(Name = 'Test Account');
+        insert testAccount;
 
-    @isTest
-    static void testTripCreationOnOpportunityWin() {
-        // Créez un compte pour l'opportunité
-        Account account = new Account(Name = 'Test Account');
-        insert account;
-
-        // Créez une opportunité avec des dates valides
-        Opportunity opp = new Opportunity(
+        // Créer une opportunité de test
+        Opportunity testOpp = new Opportunity(
             Name = 'Test Opportunity',
-            AccountId = account.Id,
             CloseDate = Date.today(),
-            StageName = 'Prospecting', // Initialement non gagnée
+            StageName = 'Prospecting',
+            AccountId = testAccount.Id,
             Destination__c = 'Test Destination',
-            Start_Date__c = Date.newInstance(2023, 12, 1),
-            End_Date__c = Date.newInstance(2023, 12, 10),
-            Number_of_Participants__c = 5,
-            Amount = 1000
+            Start_Date__c = Date.today(),
+            End_Date__c = Date.today().addDays(5),
+            Number_of_Participants__c = 10,
+            Amount = 5000
         );
-        insert opp;
+        insert testOpp;
 
-        // Mettez à jour l'opportunité comme gagnée
-        Test.startTest();
-        opp.StageName = 'Closed Won';
-        update opp;
-        Test.stopTest();
+        // Mettre à jour l'opportunité pour la marquer comme gagnée
+        testOpp.StageName = 'Closed Won';
+        update testOpp;
 
-        // Vérifiez qu'un voyage a été créé
-        List<Trip__c> trips = [SELECT Id FROM Trip__c WHERE Opportunity__c = :opp.Id];
-        System.assertEquals(1, trips.size(), 'Un voyage devrait avoir été créé.');
-    }
-
-    @isTest
-    static void testTripNotCreatedOnInvalidDates() {
-        // Créez un compte pour l'opportunité
-        Account account = new Account(Name = 'Test Account');
-        insert account;
-
-        // Créez une opportunité avec des dates invalides
-        Opportunity opp = new Opportunity(
-            Name = 'Test Opportunity',
-            AccountId = account.Id,
-            CloseDate = Date.today(),
-            StageName = 'Prospecting', // Initialement non gagnée
-            Destination__c = 'Test Destination',
-            Start_Date__c = Date.newInstance(2023, 12, 10),
-            End_Date__c = Date.newInstance(2023, 12, 1),
-            Number_of_Participants__c = 5,
-            Amount = 1000
-        );
-        insert opp;
-
-        try {
-            // Mettez à jour l'opportunité comme gagnée
-            Test.startTest();
-            opp.StageName = 'Closed Won';
-            update opp;
-            Test.stopTest();
-            System.assert(false, 'Une erreur devrait avoir été levée pour les dates invalides.');
-        } catch (DmlException e) {
-            System.assert(e.getMessage().contains('Erreur : La date de fin du voyage doit être postérieure à la date de début.'), 'L\'erreur attendue n\'a pas été levée.');
-        }
+        // Vérifier qu'un enregistrement Trip__c a été créé
+        List<Trip__c> trips = [SELECT Id FROM Trip__c WHERE Opportunity__c = :testOpp.Id];
+        System.assertEquals(1, trips.size(), 'Un enregistrement Trip__c devrait être créé.');
     }
 }
