@@ -1,4 +1,4 @@
-public class ValidateTripDatesHandler {
+public with sharing class ValidateTripDatesHandler {
     // Méthode pour valider les dates des enregistrements Trip__c
     public static void validateTripDates(List<Trip__c> trips) {
         for (Trip__c trip : trips) {

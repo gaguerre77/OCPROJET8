@@ -1,4 +1,4 @@
-public class OpportunityTripHandler {
+public with sharing class OpportunityTripHandler {
     // Méthode pour gérer la création des enregistrements Trip__c
     public static void handleAfterUpdate(List<Opportunity> newOppList, Map<Id, Opportunity> oldOppMap) {
         List<Trip__c> tripsToInsert = new List<Trip__c>();
