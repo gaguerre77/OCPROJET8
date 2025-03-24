@@ -1,4 +1,4 @@
-public class CancelTripsBatchSchedule implements Schedulable {
+public without sharing class CancelTripsBatchSchedule implements Schedulable {
     // Méthode pour planifier le traitement par lots
     public static void scheduleBatch() {
         // Planifier le traitement par lots pour s'exécuter toutes les heures

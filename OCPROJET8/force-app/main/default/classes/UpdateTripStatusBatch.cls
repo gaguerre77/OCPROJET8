@@ -1,4 +1,4 @@
-public class UpdateTripStatusBatch implements Database.Batchable<SObject> {
+public without sharing class UpdateTripStatusBatch implements Database.Batchable<SObject> {
 
     public Database.QueryLocator start(Database.BatchableContext BC) {
         // Query all Trip__c records
