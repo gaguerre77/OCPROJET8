@@ -26,9 +26,10 @@ public class CancelTripsBatchTest {
     static void setup() {
         // Créez des données de test pour les voyages
         List<Trip__c> trips = new List<Trip__c>{
-            new Trip__c(Name = 'Trip 1', Status__c = 'Upcoming', Number_of_Participants__c = 5),
-            new Trip__c(Name = 'Trip 2', Status__c = 'Upcoming', Number_of_Participants__c = 15),
-            new Trip__c(Name = 'Trip 3', Status__c = 'Cancelled', Number_of_Participants__c = 8)
+            new Trip__c(Name = 'Trip 1', Status__c = 'Upcoming', Number_of_Participants__c = 5, Start_Date__c = Date.today().addDays(5)),
+            new Trip__c(Name = 'Trip 2', Status__c = 'Upcoming', Number_of_Participants__c = 15, Start_Date__c = Date.today().addDays(6)),
+            new Trip__c(Name = 'Trip 3', Status__c = 'Cancelled', Number_of_Participants__c = 8, Start_Date__c = Date.today().addDays(1)),
+            new Trip__c(Name = 'Trip 4', Status__c = 'Upcoming', Number_of_Participants__c = 9, Start_Date__c = Date.today().addDays(8))
         };
         insert trips;
     }
@@ -41,11 +42,11 @@ public class CancelTripsBatchTest {
         Database.executeBatch(batch);
         Test.stopTest();
 
-        // Vérifiez que les voyages avec moins de 10 participants sont annulés
-        List<Trip__c> trips = [SELECT Id, Status__c, Number_of_Participants__c FROM Trip__c];
+        // Vérifiez que les voyages avec moins de 10 participants et dont la date de début est dans moins de 7 jours sont annulés
+        List<Trip__c> trips = [SELECT Id, Status__c, Number_of_Participants__c, Start_Date__c FROM Trip__c];
         for (Trip__c trip : trips) {
-            if (trip.Number_of_Participants__c < 10 && trip.Status__c != 'Cancelled') {
-                System.assert(false, 'Le voyage avec moins de 10 participants n\'a pas été annulé.');
+            if (trip.Number_of_Participants__c < 10 && trip.Start_Date__c <= Date.today().addDays(7) && trip.Start_Date__c > Date.today()) {
+                System.assertEquals('Cancelled', trip.Status__c, 'Le voyage avec moins de 10 participants et dont la date de début est dans moins de 7 jours n\'a pas été annulé.');
             }
         }
     }

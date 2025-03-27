@@ -1,8 +1,9 @@
 public without sharing class UpdateTripStatusBatch implements Database.Batchable<SObject> {
 
     public Database.QueryLocator start(Database.BatchableContext BC) {
-        // Query all Trip__c records
-        return Database.getQueryLocator([SELECT Id, Start_Date__c, End_Date__c, Status__c FROM Trip__c]);
+        // Requête pour obtenir tous les voyages dont le statut est différent de "Cancelled"
+        String query = 'SELECT Id, Start_Date__c, End_Date__c, Status__c FROM Trip__c WHERE Status__c != \'Cancelled\'';
+        return Database.getQueryLocator(query);
     }
 
     public void execute(Database.BatchableContext BC, List<Trip__c> scope) {
@@ -18,11 +19,11 @@ public without sharing class UpdateTripStatusBatch implements Database.Batchable
             }
         }
 
-        // Update the records with the new status
+        // Mettre à jour les enregistrements avec le nouveau statut
         update scope;
     }
 
     public void finish(Database.BatchableContext BC) {
-        // Logic to execute after all batches are processed
+        // Logique à exécuter après le traitement de tous les lots
     }
 }
